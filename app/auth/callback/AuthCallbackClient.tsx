@@ -1,35 +1,125 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function AuthCallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const code = searchParams.get('code');
-    const next = searchParams.get('next') ?? '/dashboard';
+    const handleCallback = async () => {
+      try {
+        // Debug: Log environment variables (remove in production)
+        console.log("Environment check:", {
+          hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+          hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + "...",
+        });
 
-    if (!code) {
-      router.replace('/login?error=missing_auth_code');
-      return;
-    }
+        // Check if we have the required environment variables
+        if (
+          !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+          !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        ) {
+          throw new Error(
+            "Supabase configuration is missing. Please check your environment variables."
+          );
+        }
 
-    const exchangeCode = async () => {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) {
-        console.error('Magic link auth error:', error.message);
-        router.replace(`/login?error=${encodeURIComponent(error.message)}`);
-      } else {
-        router.replace(next);
+        // Dynamic import to avoid SSR issues
+        const { createBrowserClient } = await import("@supabase/ssr");
+
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        );
+
+        const code = searchParams.get("code");
+        const next = searchParams.get("next") ?? "/dashboard";
+
+        if (!code) {
+          console.error("No authorization code found");
+          router.replace("/?error=missing_auth_code");
+          return;
+        }
+
+        console.log("Exchanging code for session...");
+        const { error: authError } = await supabase.auth.exchangeCodeForSession(
+          code
+        );
+
+        if (authError) {
+          console.error("Magic link auth error:", authError.message);
+          setError(authError.message);
+          setTimeout(() => {
+            router.replace(`/?error=${encodeURIComponent(authError.message)}`);
+          }, 3000);
+        } else {
+          console.log("Authentication successful, redirecting...");
+          router.replace(next);
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Authentication failed";
+        console.error("Callback error:", errorMessage);
+        setError(errorMessage);
+        setTimeout(() => {
+          router.replace(`/?error=${encodeURIComponent(errorMessage)}`);
+        }, 3000);
+      } finally {
+        setLoading(false);
       }
     };
 
-    exchangeCode();
-  }, [searchParams, router, supabase]);
+    handleCallback();
+  }, [searchParams, router]);
 
-  return <p className="text-center p-6">Signing you in...</p>;
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-md">
+          <div className="text-center">
+            <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <svg
+                className="h-6 w-6 text-red-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Authentication Error
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">{error}</p>
+            <p className="text-xs text-gray-500">
+              Redirecting you back to the login page...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Signing you in...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }

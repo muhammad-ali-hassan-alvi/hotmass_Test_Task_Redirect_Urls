@@ -1,14 +1,19 @@
-// lib/supabase/client.ts
-
-import { createBrowserClient } from "@supabase/ssr"; // <-- THIS IS THE CRITICAL MISSING LINE
+import { createBrowserClient } from "@supabase/ssr"
 
 export function createClient() {
-  // You had the right idea with the configuration, but the import was missing.
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    // Note: The extra auth options you added are generally the default
-    // behavior for the browser client, so they aren't strictly necessary.
-    // This simplified version is all you need.
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Missing Supabase environment variables:", {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseAnonKey,
+      url: supabaseUrl?.substring(0, 30) + "..." || "undefined",
+    })
+    throw new Error(
+      "Missing Supabase environment variables. Please check that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.",
+    )
+  }
+
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
