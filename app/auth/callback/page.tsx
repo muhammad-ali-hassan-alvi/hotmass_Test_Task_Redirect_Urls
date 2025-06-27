@@ -1,6 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // <-- THIS FIXES THE ERROR
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,6 +23,7 @@ export default function AuthCallbackPage() {
     const exchangeCode = async () => {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (error) {
+        console.error("Magic link auth error:", error.message);
         router.replace(`/login?error=${encodeURIComponent(error.message)}`);
       } else {
         router.replace(next);
