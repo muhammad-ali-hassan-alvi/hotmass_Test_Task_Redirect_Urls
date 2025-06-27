@@ -1,6 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic"; // Disable prerendering for this client-side page
+export const dynamic = "force-dynamic";
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -20,23 +20,18 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    const exchangeCode = async () => {
+    async function exchangeCode() {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
-
       if (error) {
         console.error("Auth callback error:", error.message);
         router.replace(`/login?error=${encodeURIComponent(error.message)}`);
       } else {
         router.replace(next);
       }
-    };
+    }
 
     exchangeCode();
   }, [searchParams, router, supabase]);
 
-  return (
-    <div className="flex items-center justify-center h-screen">
-      <p className="text-gray-500 text-lg">Signing you in...</p>
-    </div>
-  );
+  return <p className="text-center p-6">Signing you in...</p>;
 }
