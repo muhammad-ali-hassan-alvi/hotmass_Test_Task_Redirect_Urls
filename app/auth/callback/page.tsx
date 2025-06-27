@@ -1,10 +1,10 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client"; // <-- uses browser SDK
+import { createClient } from "@/lib/supabase/client";
+
+export const dynamic = "force-dynamic"; // Important: disables prerender
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function AuthCallbackPage() {
     const exchangeCode = async () => {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (error) {
-        console.error("Supabase auth error:", error.message);
+        console.error("Auth error:", error.message);
         router.replace(`/login?error=${encodeURIComponent(error.message)}`);
       } else {
         router.replace(next);
