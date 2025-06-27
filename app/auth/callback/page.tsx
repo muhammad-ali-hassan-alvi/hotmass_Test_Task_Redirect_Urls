@@ -1,39 +1,9 @@
-// app/auth/callback/page.tsx
+import dynamic from "next/dynamic";
 
-"use client"; // Ensure this runs on the client side
-
-import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-
-export const dynamic = "force-dynamic"; // Prevent static optimization
+const AuthCallbackClient = dynamic(() => import("./AuthCallbackClient"), {
+  ssr: false, // Disable server-side rendering for this page
+});
 
 export default function AuthCallbackPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const supabase = createClient();
-
-  useEffect(() => {
-    const code = searchParams.get("code");
-    const next = searchParams.get("next") ?? "/dashboard";
-
-    if (!code) {
-      router.replace("/login?error=missing_auth_code");
-      return;
-    }
-
-    const exchangeCode = async () => {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) {
-        console.error("Magic link auth error:", error.message);
-        router.replace(`/login?error=${encodeURIComponent(error.message)}`);
-      } else {
-        router.replace(next);
-      }
-    };
-
-    exchangeCode();
-  }, [searchParams, router, supabase]);
-
-  return <p className="text-center p-6">Signing you in...</p>;
+  return <AuthCallbackClient />;
 }
