@@ -121,12 +121,12 @@ function MagicLinkModal({ children }: MagicLinkModalProps) {
               />
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <h4 className="text-sm font-medium text-blue-900 mb-1">Current redirect URL:</h4>
               <p className="text-xs text-blue-800 font-mono">
                 {typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : "Loading..."}
               </p>
-            </div>
+            </div> */}
 
             <div className="flex gap-3">
               <Button type="submit" disabled={loading} className="flex-1">
