@@ -1,33 +1,36 @@
-// app/auth/callback/page.tsx
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+"use client";
 
-export default async function AuthCallbackPage({
-  searchParams,
-}: {
-  searchParams: { code?: string; next?: string; error?: string };
-}) {
-  const code = searchParams.code;
-  const next = searchParams.next ?? "/dashboard";
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
-  if (!code) {
-    return redirect("/login?error=missing_auth_code");
-  }
-
+export default function AuthCallbackPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
-  try {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+  useEffect(() => {
+    const code = searchParams.get("code");
+    const next = searchParams.get("next") ?? "/dashboard";
 
-    if (error) {
-      console.error("Auth callback error:", error);
-      return redirect(`/login?error=${encodeURIComponent(error.message)}`);
+    if (!code) {
+      router.replace("/login?error=missing_auth_code");
+      return;
     }
 
-    return redirect(next);
-  } catch (err) {
-    console.error("Callback exception:", err);
-    return redirect("/login?error=auth_failed");
-  }
+    const exchangeCode = async () => {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        console.error("Magic link callback error:", error.message);
+        router.replace(`/login?error=${encodeURIComponent(error.message)}`);
+      } else {
+        router.replace(next);
+      }
+    };
+
+    exchangeCode();
+  }, [searchParams, router, supabase]);
+
+  return <p className="text-center p-6">Signing you in...</p>;
 }
