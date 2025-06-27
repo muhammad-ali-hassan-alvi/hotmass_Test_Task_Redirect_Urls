@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Loader2, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface MagicLinkModalProps {
   children: React.ReactNode;
@@ -28,6 +27,7 @@ function MagicLinkModal({ children }: MagicLinkModalProps) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
   const supabase = createClient();
 
   const handleSendMagicLink = async (e: React.FormEvent) => {
@@ -45,50 +45,36 @@ function MagicLinkModal({ children }: MagicLinkModalProps) {
     setLoading(true);
 
     try {
-      // Get the current origin dynamically
-      const currentOrigin =
-        typeof window !== "undefined"
-          ? window.location.origin
-          : "https://hotmass-test-task.vercel.app";
-
+      const origin = window.location.origin;
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          // Use dynamic origin for the callback
-          emailRedirectTo: `${currentOrigin}/auth/callback?next=/dashboard`,
+          emailRedirectTo: `${origin}/auth/callback`,
           shouldCreateUser: true,
         },
       });
 
-      if (error) {
-        console.error("Magic link error:", error);
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        setSent(true);
-        toast({
-          title: "Magic Link Sent! ✨",
-          description: `Check your email at ${email} for the magic link`,
-        });
-      }
+      if (error) throw error;
+
+      setSent(true);
+      toast({
+        title: "Magic Link Sent! ✨",
+        description: `Check your email at ${email} for the magic link`,
+      });
     } catch (error) {
-      console.error("Magic link catch error:", error);
+      console.error("Magic link error:", error);
       toast({
         title: "Error",
-        description: "Failed to send magic link. Please try again.",
+        description: error.message || "Failed to send magic link",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleClose = () => {
     setOpen(false);
-    // Reset state when modal closes
     setTimeout(() => {
       setEmail("");
       setSent(false);
