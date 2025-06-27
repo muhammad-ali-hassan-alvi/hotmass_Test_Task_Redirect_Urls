@@ -1,33 +1,37 @@
-// app/auth/callback/page.tsx
+"use client";
 
-import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { type NextRequest } from "next/server";
+export const dynamic = "force-dynamic";
 
-// This is a server component, so it can be async.
-// It does NOT use "use client" or any hooks.
-export default async function AuthCallbackPage(
-  // Next.js automatically provides the request object in Route Handlers
-  // and searchParams in Pages.
-  { searchParams }: { searchParams: { code?: string; next?: string } }
-) {
-  const code = searchParams.code;
-  const next = searchParams.next ?? "/dashboard";
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase/client"; // <-- uses browser SDK
 
-  if (code) {
-    const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+export default function AuthCallbackPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const supabase = createClient();
 
-    if (!error) {
-      // On success, redirect the user. This happens on the server.
-      return redirect(next);
+  useEffect(() => {
+    const code = searchParams.get("code");
+    const next = searchParams.get("next") ?? "/dashboard";
+
+    if (!code) {
+      router.replace("/login?error=missing_auth_code");
+      return;
     }
 
-    console.error("Auth callback error:", error.message);
-  }
+    const exchangeCode = async () => {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        console.error("Supabase auth error:", error.message);
+        router.replace(`/login?error=${encodeURIComponent(error.message)}`);
+      } else {
+        router.replace(next);
+      }
+    };
 
-  // If there's an error or no code, redirect to an error page.
-  return redirect("/login?error=auth_failed");
+    exchangeCode();
+  }, [searchParams, router, supabase]);
+
+  return <p className="text-center p-6">Signing you in...</p>;
 }
