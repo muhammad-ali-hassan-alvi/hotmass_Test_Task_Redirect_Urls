@@ -1,12 +1,12 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Dialog,
   DialogContent,
@@ -14,73 +14,82 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { Mail, Loader2, Clock } from "lucide-react";
+} from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
+import { Mail, Loader2, Clock } from "lucide-react"
 
 interface MagicLinkModalProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 function MagicLinkModal({ children }: MagicLinkModalProps) {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [sent, setSent] = useState(false);
-  const { toast } = useToast();
-  const supabase = createClient();
+  const [email, setEmail] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [sent, setSent] = useState(false)
+  const { toast } = useToast()
+  const supabase = createClient()
 
   const handleSendMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!email.trim()) {
       toast({
         title: "Error",
         description: "Please enter your email address",
         variant: "destructive",
-      });
-      return;
+      })
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
 
     try {
-      const origin = window.location.origin;
-      const { error } = await supabase.auth.signInWithOtp({
+      const origin = window.location.origin
+      const redirectTo = `${origin}/auth/callback`
+
+      console.log("=== MAGIC LINK DEBUG ===")
+      console.log("Email:", email)
+      console.log("Origin:", origin)
+      console.log("Redirect URL:", redirectTo)
+
+      const { data, error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: `${origin}/auth/callback`,
+          emailRedirectTo: redirectTo,
           shouldCreateUser: true,
         },
-      });
+      })
 
-      if (error) throw error;
+      console.log("Magic link result:", { data, error })
 
-      setSent(true);
+      if (error) throw error
+
+      setSent(true)
       toast({
         title: "Magic Link Sent! ✨",
         description: `Check your email at ${email} for the magic link`,
-      });
+      })
     } catch (error) {
-      console.error("Magic link error:", error);
+      console.error("Magic link error:", error)
       toast({
         title: "Error",
         description: error.message || "Failed to send magic link",
         variant: "destructive",
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleClose = () => {
-    setOpen(false);
+    setOpen(false)
     setTimeout(() => {
-      setEmail("");
-      setSent(false);
-      setLoading(false);
-    }, 200);
-  };
+      setEmail("")
+      setSent(false)
+      setLoading(false)
+    }, 200)
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -92,8 +101,7 @@ function MagicLinkModal({ children }: MagicLinkModalProps) {
             Send Magic Link
           </DialogTitle>
           <DialogDescription>
-            Enter your email address and we'll send you a magic link to sign in
-            instantly.
+            Enter your email address and we'll send you a magic link to sign in instantly.
           </DialogDescription>
         </DialogHeader>
 
@@ -111,6 +119,13 @@ function MagicLinkModal({ children }: MagicLinkModalProps) {
                 required
                 autoFocus
               />
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-blue-900 mb-1">Current redirect URL:</h4>
+              <p className="text-xs text-blue-800 font-mono">
+                {typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : "Loading..."}
+              </p>
             </div>
 
             <div className="flex gap-3">
@@ -149,25 +164,16 @@ function MagicLinkModal({ children }: MagicLinkModalProps) {
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <h4 className="text-sm font-medium text-blue-900 mb-1">
-                Important:
-              </h4>
+              <h4 className="text-sm font-medium text-blue-900 mb-1">Important:</h4>
               <ul className="text-xs text-blue-800 space-y-1">
-                <li>
-                  • Check your spam/junk folder if you don't see the email
-                </li>
+                <li>• Check your spam/junk folder if you don't see the email</li>
                 <li>• Click the link within 1 hour</li>
                 <li>• Each link can only be used once</li>
               </ul>
             </div>
 
             <div className="flex gap-3">
-              <Button
-                onClick={() => setSent(false)}
-                variant="outline"
-                className="flex-1"
-                disabled={loading}
-              >
+              <Button onClick={() => setSent(false)} variant="outline" className="flex-1" disabled={loading}>
                 Send Another
               </Button>
               <Button onClick={handleClose} className="flex-1">
@@ -178,7 +184,7 @@ function MagicLinkModal({ children }: MagicLinkModalProps) {
         )}
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 
-export default MagicLinkModal;
+export default MagicLinkModal

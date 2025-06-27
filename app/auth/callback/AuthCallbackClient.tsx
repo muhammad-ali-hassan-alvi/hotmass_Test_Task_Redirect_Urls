@@ -8,11 +8,22 @@ export default function AuthCallbackClient() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        console.log("Starting auth callback process...");
+        // Get all URL parameters for debugging
+        const urlParams = Object.fromEntries(searchParams.entries());
+        console.log("=== AUTH CALLBACK DEBUG ===");
+        console.log("Full URL:", window.location.href);
+        console.log("URL Parameters:", urlParams);
+
+        setDebugInfo({
+          url: window.location.href,
+          params: urlParams,
+          origin: window.location.origin,
+        });
 
         // Check if we have the required environment variables
         if (
@@ -34,6 +45,13 @@ export default function AuthCallbackClient() {
         const error_code = searchParams.get("error");
         const error_description = searchParams.get("error_description");
 
+        console.log("Auth parameters:", {
+          hasCode: !!code,
+          codeLength: code?.length,
+          errorCode: error_code,
+          errorDescription: error_description,
+        });
+
         // Handle OAuth errors first
         if (error_code) {
           console.error("OAuth error:", error_code, error_description);
@@ -42,23 +60,33 @@ export default function AuthCallbackClient() {
 
         if (!code) {
           console.error("No authorization code found in URL");
-          throw new Error("No authorization code received");
+          throw new Error(
+            "No authorization code received. Please try the magic link again."
+          );
         }
 
-        console.log("Exchanging code for session...");
+        console.log("Attempting to exchange code for session...");
 
-        // Exchange the code for a session
+        // Exchange the code for a session with better error handling
         const { data, error: authError } =
           await supabase.auth.exchangeCodeForSession(code);
 
+        console.log("Exchange result:", {
+          hasData: !!data,
+          hasUser: !!data?.user,
+          hasSession: !!data?.session,
+          error: authError,
+        });
+
         if (authError) {
           console.error("Session exchange error:", authError);
-          throw authError;
+          throw new Error(`Authentication failed: ${authError.message}`);
         }
 
         if (data?.user) {
-          console.log("Authentication successful:", data.user.email);
+          console.log("Authentication successful for:", data.user.email);
           const next = searchParams.get("next") ?? "/dashboard";
+          console.log("Redirecting to:", next);
           router.replace(next);
         } else {
           throw new Error("No user data received after authentication");
@@ -66,13 +94,19 @@ export default function AuthCallbackClient() {
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Authentication failed";
-        console.error("Callback error:", errorMessage);
+        console.error("=== CALLBACK ERROR ===");
+        console.error("Error:", errorMessage);
+        console.error(
+          "Stack:",
+          err instanceof Error ? err.stack : "No stack trace"
+        );
+
         setError(errorMessage);
 
         // Redirect to home page with error after a delay
         setTimeout(() => {
           router.replace(`/?error=${encodeURIComponent(errorMessage)}`);
-        }, 3000);
+        }, 5000); // Increased delay to see debug info
       } finally {
         setLoading(false);
       }
@@ -83,9 +117,9 @@ export default function AuthCallbackClient() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-md">
-          <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="max-w-2xl w-full bg-white p-6 rounded-lg shadow-md">
+          <div className="text-center mb-6">
             <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
               <svg
                 className="h-6 w-6 text-red-600"
@@ -105,10 +139,33 @@ export default function AuthCallbackClient() {
               Authentication Error
             </h3>
             <p className="text-sm text-gray-600 mb-4">{error}</p>
-            <p className="text-xs text-gray-500">
-              Redirecting you back to the login page...
+            <p className="text-xs text-gray-500 mb-4">
+              Redirecting you back to the login page in 5 seconds...
             </p>
           </div>
+
+          {/* Debug Information */}
+          {debugInfo && (
+            <div className="bg-gray-50 p-4 rounded-lg text-left">
+              <h4 className="font-medium text-gray-900 mb-2">
+                Debug Information:
+              </h4>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p>
+                  <strong>URL:</strong> {debugInfo.url}
+                </p>
+                <p>
+                  <strong>Origin:</strong> {debugInfo.origin}
+                </p>
+                <p>
+                  <strong>Parameters:</strong>
+                </p>
+                <pre className="bg-white p-2 rounded border text-xs overflow-auto">
+                  {JSON.stringify(debugInfo.params, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -119,7 +176,10 @@ export default function AuthCallbackClient() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Signing you in...</p>
+          <p className="text-gray-600">Processing authentication...</p>
+          <p className="text-xs text-gray-500 mt-2">
+            Check browser console for debug info
+          </p>
         </div>
       </div>
     );
