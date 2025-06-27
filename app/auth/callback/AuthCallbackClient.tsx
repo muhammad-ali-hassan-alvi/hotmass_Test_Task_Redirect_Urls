@@ -12,21 +12,14 @@ export default function AuthCallbackClient() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Debug: Log environment variables (remove in production)
-        console.log("Environment check:", {
-          hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-          hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-          url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + "...",
-        });
+        console.log("Starting auth callback process...");
 
         // Check if we have the required environment variables
         if (
           !process.env.NEXT_PUBLIC_SUPABASE_URL ||
           !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         ) {
-          throw new Error(
-            "Supabase configuration is missing. Please check your environment variables."
-          );
+          throw new Error("Supabase configuration is missing");
         }
 
         // Dynamic import to avoid SSR issues
@@ -38,34 +31,45 @@ export default function AuthCallbackClient() {
         );
 
         const code = searchParams.get("code");
-        const next = searchParams.get("next") ?? "/dashboard";
+        const error_code = searchParams.get("error");
+        const error_description = searchParams.get("error_description");
+
+        // Handle OAuth errors first
+        if (error_code) {
+          console.error("OAuth error:", error_code, error_description);
+          throw new Error(error_description || error_code);
+        }
 
         if (!code) {
-          console.error("No authorization code found");
-          router.replace("/?error=missing_auth_code");
-          return;
+          console.error("No authorization code found in URL");
+          throw new Error("No authorization code received");
         }
 
         console.log("Exchanging code for session...");
-        const { error: authError } = await supabase.auth.exchangeCodeForSession(
-          code
-        );
+
+        // Exchange the code for a session
+        const { data, error: authError } =
+          await supabase.auth.exchangeCodeForSession(code);
 
         if (authError) {
-          console.error("Magic link auth error:", authError.message);
-          setError(authError.message);
-          setTimeout(() => {
-            router.replace(`/?error=${encodeURIComponent(authError.message)}`);
-          }, 3000);
-        } else {
-          console.log("Authentication successful, redirecting...");
+          console.error("Session exchange error:", authError);
+          throw authError;
+        }
+
+        if (data?.user) {
+          console.log("Authentication successful:", data.user.email);
+          const next = searchParams.get("next") ?? "/dashboard";
           router.replace(next);
+        } else {
+          throw new Error("No user data received after authentication");
         }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Authentication failed";
         console.error("Callback error:", errorMessage);
         setError(errorMessage);
+
+        // Redirect to home page with error after a delay
         setTimeout(() => {
           router.replace(`/?error=${encodeURIComponent(errorMessage)}`);
         }, 3000);

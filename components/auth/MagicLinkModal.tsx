@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Loader2, Clock } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 interface MagicLinkModalProps {
   children: React.ReactNode;
@@ -27,7 +28,6 @@ function MagicLinkModal({ children }: MagicLinkModalProps) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
   const supabase = createClient();
 
   const handleSendMagicLink = async (e: React.FormEvent) => {
@@ -107,8 +107,8 @@ function MagicLinkModal({ children }: MagicLinkModalProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
-                required
                 autoComplete="email"
+                required
                 autoFocus
               />
             </div>
