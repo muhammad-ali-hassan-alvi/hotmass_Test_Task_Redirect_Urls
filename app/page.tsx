@@ -38,6 +38,8 @@ export default async function Home() {
         </div>
         <AuthForm />
       </div>
+
+      {/* Changes in this file */}
     </div>
   );
 }
