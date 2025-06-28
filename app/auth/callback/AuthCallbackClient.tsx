@@ -13,7 +13,6 @@ export default function AuthCallbackClient() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-
         const urlParams = Object.fromEntries(searchParams.entries());
         console.log("=== AUTH CALLBACK DEBUG ===");
         console.log("Full URL:", window.location.href);
@@ -25,14 +24,12 @@ export default function AuthCallbackClient() {
           origin: window.location.origin,
         });
 
-
         if (
           !process.env.NEXT_PUBLIC_SUPABASE_URL ||
           !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         ) {
           throw new Error("Supabase configuration is missing");
         }
-
 
         const { createBrowserClient } = await import("@supabase/ssr");
 
@@ -52,7 +49,6 @@ export default function AuthCallbackClient() {
           errorDescription: error_description,
         });
 
-
         if (error_code) {
           console.error("OAuth error:", error_code, error_description);
           throw new Error(error_description || error_code);
@@ -67,7 +63,6 @@ export default function AuthCallbackClient() {
 
         console.log("Attempting to exchange code for session...");
 
-
         const { data, error: authError } =
           await supabase.auth.exchangeCodeForSession(code);
 
@@ -79,6 +74,15 @@ export default function AuthCallbackClient() {
         });
 
         if (authError) {
+          console.warn("Session exchange failed, checking session cookie...");
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session?.user) {
+            console.log("User session exists via cookie, proceeding...");
+            const next = searchParams.get("next") ?? "/dashboard";
+            router.replace(next);
+            return;
+          }
+
           console.error("Session exchange error:", authError);
           throw new Error(`Authentication failed: ${authError.message}`);
         }
@@ -86,7 +90,6 @@ export default function AuthCallbackClient() {
         if (data?.user) {
           console.log("Authentication successful for:", data.user.email);
           const next = searchParams.get("next") ?? "/dashboard";
-          console.log("Redirecting to:", next);
           router.replace(next);
         } else {
           throw new Error("No user data received after authentication");
@@ -103,10 +106,9 @@ export default function AuthCallbackClient() {
 
         setError(errorMessage);
 
-
         setTimeout(() => {
           router.replace(`/?error=${encodeURIComponent(errorMessage)}`);
-        }, 5000); 
+        }, 5000);
       } finally {
         setLoading(false);
       }
