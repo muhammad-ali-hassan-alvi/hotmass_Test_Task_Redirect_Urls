@@ -13,7 +13,7 @@ export default function AuthCallbackClient() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Get all URL parameters for debugging
+
         const urlParams = Object.fromEntries(searchParams.entries());
         console.log("=== AUTH CALLBACK DEBUG ===");
         console.log("Full URL:", window.location.href);
@@ -25,7 +25,7 @@ export default function AuthCallbackClient() {
           origin: window.location.origin,
         });
 
-        // Check if we have the required environment variables
+
         if (
           !process.env.NEXT_PUBLIC_SUPABASE_URL ||
           !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -33,7 +33,7 @@ export default function AuthCallbackClient() {
           throw new Error("Supabase configuration is missing");
         }
 
-        // Dynamic import to avoid SSR issues
+
         const { createBrowserClient } = await import("@supabase/ssr");
 
         const supabase = createBrowserClient(
@@ -52,7 +52,7 @@ export default function AuthCallbackClient() {
           errorDescription: error_description,
         });
 
-        // Handle OAuth errors first
+
         if (error_code) {
           console.error("OAuth error:", error_code, error_description);
           throw new Error(error_description || error_code);
@@ -67,7 +67,7 @@ export default function AuthCallbackClient() {
 
         console.log("Attempting to exchange code for session...");
 
-        // Exchange the code for a session with better error handling
+
         const { data, error: authError } =
           await supabase.auth.exchangeCodeForSession(code);
 
@@ -103,10 +103,10 @@ export default function AuthCallbackClient() {
 
         setError(errorMessage);
 
-        // Redirect to home page with error after a delay
+
         setTimeout(() => {
           router.replace(`/?error=${encodeURIComponent(errorMessage)}`);
-        }, 5000); // Increased delay to see debug info
+        }, 5000); 
       } finally {
         setLoading(false);
       }
@@ -144,7 +144,6 @@ export default function AuthCallbackClient() {
             </p>
           </div>
 
-          {/* Debug Information */}
           {debugInfo && (
             <div className="bg-gray-50 p-4 rounded-lg text-left">
               <h4 className="font-medium text-gray-900 mb-2">

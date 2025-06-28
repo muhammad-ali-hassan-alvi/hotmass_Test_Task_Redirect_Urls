@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Testing HubSpot token...");
 
-    // Try multiple endpoints to find what works
+
     const endpoints = [
       {
         name: "CMS Pages",
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // If we get here, none of the endpoints worked
+
     return NextResponse.json(
       {
         success: false,

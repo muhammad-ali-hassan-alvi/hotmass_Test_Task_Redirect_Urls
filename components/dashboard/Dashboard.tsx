@@ -44,8 +44,8 @@ export default function Dashboard({ user }: DashboardProps) {
     } else {
       console.log("Signed out successfully");
 
-      // Optionally redirect to login/home page
-      window.location.href = "/"; // or "/login"
+      
+      window.location.href = "/";
     }
   };
 
@@ -74,7 +74,7 @@ export default function Dashboard({ user }: DashboardProps) {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* Connection Status */}
+
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Connection Status</CardTitle>
@@ -94,20 +94,20 @@ export default function Dashboard({ user }: DashboardProps) {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Google Connection */}
+
             <GoogleConnection
               onConnectionChange={setGoogleConnected}
               onSheetSelect={setSelectedSheetId}
             />
 
-            {/* HubSpot Connection */}
+
             <HubSpotConnection
               onConnectionChange={setHubspotConnected}
               onTokenChange={setHubspotToken}
             />
           </div>
 
-          {/* Page Sync */}
+
           {googleConnected && hubspotConnected && (
             <PageSync
               userId={user.id}
@@ -117,7 +117,7 @@ export default function Dashboard({ user }: DashboardProps) {
             />
           )}
 
-          {/* Sync History */}
+
           <SyncHistory userId={user.id} refreshKey={refreshKey} />
         </div>
       </main>

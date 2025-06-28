@@ -23,7 +23,7 @@ export async function GET(_request: NextRequest) {
       );
     }
 
-    // Test 1: Check if we can read from the table
+    
     const { data: existingSessions, error: readError } = await supabase
       .from("sync_sessions")
       .select("*")
@@ -33,7 +33,7 @@ export async function GET(_request: NextRequest) {
     console.log("Existing sessions:", existingSessions);
     console.log("Read error:", readError);
 
-    // Test 2: Try to insert a test record
+    
     const testData = {
       user_id: user.id,
       sheet_id: `test_sheet_${Date.now()}`,
@@ -53,7 +53,7 @@ export async function GET(_request: NextRequest) {
     console.log("Insert result:", insertResult);
     console.log("Insert error:", insertError);
 
-    // Test 3: Read the record we just inserted
+
     const { data: afterInsert, error: afterInsertError } = await supabase
       .from("sync_sessions")
       .select("*")

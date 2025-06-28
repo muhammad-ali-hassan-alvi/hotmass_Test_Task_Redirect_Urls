@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // First, let's check if the user is authenticated
+    
     const {
       data: { user },
       error: userError,
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     console.log("Current authenticated user:", user?.id);
     console.log("User error:", userError);
 
-    // Check if there are any sync sessions at all (for debugging)
+    
     const { data: allSessions, error: allError } = await supabase
       .from("sync_sessions")
       .select("*")
@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
     console.log("All sessions (first 5):", allSessions);
     console.log("All sessions error:", allError);
 
-    // Now get sessions for this specific user
     const { data: sessions, error } = await supabase
       .from("sync_sessions")
       .select("*")

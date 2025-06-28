@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Test the HubSpot API connection
+    
     const response = await fetch(
       "https://api.hubapi.com/cms/v3/pages?limit=1",
       {

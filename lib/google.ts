@@ -1,9 +1,7 @@
-// lib/google.ts
-
 import { google } from "googleapis";
 import { cookies } from "next/headers";
 
-// FIX: Add the "export" keyword here
+
 export async function getAuthenticatedClient() {
   const cookieStore = cookies();
   const accessToken = cookieStore.get("google_access_token")?.value;

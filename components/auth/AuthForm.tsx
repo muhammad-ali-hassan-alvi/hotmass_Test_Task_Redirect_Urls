@@ -27,7 +27,7 @@ export default function AuthForm() {
   const router = useRouter();
   const supabase = createClient();
 
-  // Check if user is already signed in
+
   useEffect(() => {
     const checkUser = async () => {
       const {
@@ -60,7 +60,7 @@ export default function AuthForm() {
         title: "Success",
         description: "Signed in successfully!",
       });
-      // Redirect to dashboard
+      
       router.push("/dashboard");
     }
 

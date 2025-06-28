@@ -155,30 +155,43 @@ export default function SyncHistory({ userId, refreshKey }: SyncHistoryProps) {
   }
 
   return (
-    <Card>
+    <Card className="w-full overflow-x-auto">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle>Sync History</CardTitle>
             <CardDescription>Recent synchronization activities</CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 justify-end">
             <Button
               variant="outline"
               size="sm"
               onClick={runTest}
               disabled={testing}
+              className="flex-1 md:flex-none"
             >
               <TestTube className="h-4 w-4 mr-2" />
-              {testing ? "Testing..." : "Test DB"}
+              <span className="sr-only md:not-sr-only">
+                {testing ? "Testing..." : "Test DB"}
+              </span>
             </Button>
-            <Button variant="outline" size="sm" onClick={cleanupTestData}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cleanupTestData}
+              className="flex-1 md:flex-none"
+            >
               <Trash2 className="h-4 w-4 mr-2" />
-              Cleanup
+              <span className="sr-only md:not-sr-only">Cleanup</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={fetchSyncHistory}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchSyncHistory}
+              className="flex-1 md:flex-none"
+            >
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              <span className="sr-only md:not-sr-only">Refresh</span>
             </Button>
           </div>
         </div>
@@ -217,27 +230,29 @@ export default function SyncHistory({ userId, refreshKey }: SyncHistoryProps) {
             </Button>
           </div>
         ) : (
-          <div className="border rounded-lg">
-            <Table>
+          <div className="border rounded-lg overflow-x-auto">
+            <Table className="min-w-[600px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Tab Name</TableHead>
-                  <TableHead>Content Type</TableHead>
-                  <TableHead>Filters</TableHead>
-                  <TableHead>Rows</TableHead>
+                  <TableHead className="whitespace-nowrap">Date</TableHead>
+                  <TableHead className="whitespace-nowrap">Tab Name</TableHead>
+                  <TableHead className="whitespace-nowrap">
+                    Content Type
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap">Filters</TableHead>
+                  <TableHead className="whitespace-nowrap">Rows</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sessions.map((session) => (
                   <TableRow key={session.id}>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       {new Date(session.timestamp).toLocaleString()}
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium whitespace-nowrap">
                       {session.tab_name}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <Badge variant="secondary">{session.content_type}</Badge>
                     </TableCell>
                     <TableCell>
@@ -251,7 +266,7 @@ export default function SyncHistory({ userId, refreshKey }: SyncHistoryProps) {
                                 <Badge
                                   key={key}
                                   variant="outline"
-                                  className="text-xs"
+                                  className="text-xs whitespace-nowrap"
                                 >
                                   {key}: {String(value)}
                                 </Badge>
@@ -262,7 +277,9 @@ export default function SyncHistory({ userId, refreshKey }: SyncHistoryProps) {
                         <span className="text-gray-400">None</span>
                       )}
                     </TableCell>
-                    <TableCell>{session.rows_synced || "N/A"}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {session.rows_synced || "N/A"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

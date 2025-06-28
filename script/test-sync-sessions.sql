@@ -4,7 +4,7 @@
 -- Check current user
 SELECT auth.uid() as current_user_id;
 
--- Try to insert a test record (replace the user_id with your actual user ID)
+-- Try to insert a test record 
 INSERT INTO sync_sessions (
     user_id,
     sheet_id,

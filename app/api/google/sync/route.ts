@@ -3,7 +3,7 @@ import { google } from "googleapis";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
-// Define a type for the page object to avoid using 'any'
+
 interface Page {
   name: string;
   language: string;
@@ -71,9 +71,9 @@ export async function POST(request: NextRequest) {
       });
       console.log("✅ Tab exists:", tabName);
     } catch {
-      // FIX: Removed the unused 'error' variable from the catch block
+
       console.log("📝 Creating new tab:", tabName);
-      // Tab doesn't exist, create it
+
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: sheetId,
         requestBody: {
@@ -90,15 +90,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Clear existing data and add headers
+
     await sheets.spreadsheets.values.clear({
       spreadsheetId: sheetId,
       range: `${tabName}!A:Z`,
     });
 
-    // Prepare data with headers
+
     const headers = ["Name", "Language", "Slug", "URL", "Last Updated"];
-    // FIX: Used the 'Page' interface instead of 'any'
+
     const rows = pages.map((page: Page) => [
       page.name,
       page.language,
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     const values = [headers, ...rows];
 
-    // Write data to sheet
+
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: `${tabName}!A1`,
@@ -121,11 +121,11 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ Data written to Google Sheets");
 
-    // Store sync metadata in Supabase - use the authenticated user's ID
+ 
     console.log("📝 Inserting sync session record...");
 
     const syncData = {
-      user_id: user.id, // Use the authenticated user's ID, not the passed userId
+      user_id: user.id,
       sheet_id: sheetId,
       tab_name: tabName,
       content_type: "pages",
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Sync data to insert:", syncData);
 
-    // First, let's test if we can query the table
+   
     const { data: testQuery, error: testError } = await supabase
       .from("sync_sessions")
       .select("count")
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
         details: insertError.details,
         hint: insertError.hint,
       });
-      // Don't fail the whole request, just log the error
+      
     } else {
       console.log("✅ Sync session inserted:", insertedData);
     }

@@ -20,7 +20,7 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    // Test 1: Check if table exists and is accessible
+
     const { data: allSessions, error: allError } = await supabase
       .from("sync_sessions")
       .select("*")
@@ -28,7 +28,7 @@ export async function GET(_request: NextRequest) {
 
     console.log("All sessions test:", allSessions, allError);
 
-    // Test 2: Check user-specific sessions
+
     const { data: userSessions, error: userError2 } = await supabase
       .from("sync_sessions")
       .select("*")
@@ -36,7 +36,7 @@ export async function GET(_request: NextRequest) {
 
     console.log("User sessions test:", userSessions, userError2);
 
-    // Test 3: Try to insert a test record
+
     const testData = {
       user_id: user.id,
       sheet_id: "debug_test_sheet",
@@ -53,7 +53,7 @@ export async function GET(_request: NextRequest) {
 
     console.log("Insert test:", insertResult, insertError);
 
-    // Clean up test record
+
     if (insertResult && insertResult.length > 0) {
       await supabase
         .from("sync_sessions")

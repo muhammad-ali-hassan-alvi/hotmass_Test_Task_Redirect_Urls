@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Fetching pages from HubSpot...");
 
-    // Try different endpoints based on what worked in the test
+    
     const endpoints = [
       {
         name: "CMS Pages v3",
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
             data.results?.length || 0
           );
 
-          // Transform the data to our format
+
           const pages = (data.results || []).map((page: any) => ({
             id: page.id || page.page_id,
             name: page.name || page.html_title || page.page_title || "Untitled",
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // If we get here, none of the endpoints worked
+
     console.error("All HubSpot page endpoints failed");
 
     let errorMessage = "Failed to fetch pages from HubSpot";

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import AuthCallbackClient from "./AuthCallbackClient";
 
-// Force this page to be dynamic to prevent build errors
+
 export const dynamic = "force-dynamic";
 
 function AuthCallbackContent() {

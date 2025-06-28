@@ -211,7 +211,7 @@ export default function PageSync({ userId, sheetId, hubspotToken, onSyncComplete
               Apply Filters
             </Button>
 
-            {/* Preview Table */}
+
             <div>
               <h3 className="text-lg font-semibold mb-2">Preview ({filteredPages.length} pages)</h3>
               <div className="border rounded-lg max-h-96 overflow-auto">
@@ -243,7 +243,7 @@ export default function PageSync({ userId, sheetId, hubspotToken, onSyncComplete
               )}
             </div>
 
-            {/* Sync Button */}
+
             <Button onClick={syncToSheet} disabled={syncing || filteredPages.length === 0} className="w-full">
               {syncing ? "Syncing..." : `Sync ${filteredPages.length} Pages to Google Sheets`}
             </Button>

@@ -45,20 +45,20 @@ export default function GoogleConnection({
   useEffect(() => {
     checkGoogleConnection();
 
-    // Check for connection success from URL params
+
     if (searchParams.get("connected") === "google") {
       toast({
         title: "Success",
         description: "Successfully connected to Google!",
       });
-      // Remove the parameter from URL and recheck connection
+
       window.history.replaceState({}, "", "/dashboard");
       setTimeout(() => {
         checkGoogleConnection();
       }, 1000);
     }
 
-    // Check for errors from URL params
+
     const error = searchParams.get("error");
     if (error) {
       let errorMessage = "Failed to connect to Google";
